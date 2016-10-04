@@ -15,6 +15,8 @@ import java.net.URL;
 
 import javax.imageio.ImageIO;
 
+import org.newdawn.tilemap.AStar.Cell;
+
 /**
  * A very simple example to illustrate how simple tile maps can be
  * used for basic collision. This particular technique only works
@@ -42,6 +44,9 @@ public class Game extends Canvas implements KeyListener {
 	private boolean up;
 	/** True if the down key is currently pressed */
 	private boolean down;
+	private boolean begin;
+	private boolean end;
+	private boolean clear;
 
 	/** The map our player will wander round */
 	private Map map;
@@ -133,7 +138,7 @@ public class Game extends Canvas implements KeyListener {
 			
 			// render our game objects
 			g.translate(0,20);
-			map.paint(g, screenSizeX, screenSizeY);
+			map.paint(g);
 			player.paint(g);
 			
 			// flip the buffer so we can see the rendering
@@ -141,7 +146,6 @@ public class Game extends Canvas implements KeyListener {
 			strategy.show();
 			
 			// pause a bit so that we don't choke the system
-
 			try { Thread.sleep(4); } catch (Exception e) {};
 			
 			// calculate how long its been since we last ran the
@@ -150,20 +154,30 @@ public class Game extends Canvas implements KeyListener {
 			last = System.nanoTime();
 		
 			// now this needs a bit of explaining. The amount of time
-			// passed between rendering can vary quite alot. If we were
+			// passed between rendering can vary quite a lot. If we were
 			// to move our player based on the normal delta it would
 			// at times jump a long distance (if the delta value got really
 			// high). So we divide the amount of time passed into segments
 			// of 5 milliseconds and update based on that
-			for (int i=0;i<delta / 5;i++) {
-				logic(5);
-			}
-			
+			//for (int i=0;i<delta / 5;i++) {
+				try {
+					logic(5);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			//}
+			try { Thread.sleep(50); } catch (Exception e) {};
 			// after we've run through the segments if there is anything
 			// left over we update for that
-			if ((delta % 5) != 0) {
-				logic(delta % 5);
-			}
+			/*if ((delta % 5) != 0) {
+				try {
+					logic(delta % 5);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}*/
 		}
 	}
 	
@@ -172,33 +186,55 @@ public class Game extends Canvas implements KeyListener {
 	 * simple. Check the keyboard, and attempt to move the player
 	 * 
 	 * @param delta The amount of time to update for (in milliseconds)
+	 * @throws InterruptedException 
 	 */
-	public void logic(long delta) {
+	public void logic(long delta) throws InterruptedException {
+		int i = 0;
 		// check the keyboard and record which way the player
 		// is trying to move this loop
-		float dx = 0;
-		float dy = 0;
 		if (left) {
-			dx -= 1;
+			player.moveAbsolute(player.getX() - 1 /** delta * 0.005f*/, player.getY());
+			left = false;
 		}
 		if (right) {
-			dx += 1;
+			player.moveAbsolute(player.getX() + 1 /** delta * 0.005f*/, player.getY());
+			right = false;
 		}
 		if (up) {
-			dy -= 1;
+			player.moveAbsolute(player.getX(), player.getY() - 1 /** delta * 0.005f*/);
+			up = false;
 		}
 		if (down) {
-			dy += 1;
+			player.moveAbsolute(player.getX(), player.getY() + 1 /** delta * 0.005f*/);
+			down = false;
 		}
-		
-		// if the player needs to move attempt to move the entity
-		// based on the keys multiplied by the amount of time thats
-		// passed
-		if ((dx != 0) || (dy != 0)) {
-			player.move(dx * delta * 0.003f,
-						dy * delta * 0.003f);
+		if (begin) {
+			player.moveAbsolute(1.5f, 1.5f);
+			begin = false;
 		}
+		if (end) {
+			AStar astar = new AStar();
+			Cell [] path = new Cell[100];
+			path = astar.test(map.getWidth(), map.getHeight(), 5, 14, player.getyCell(), player.getxCell(), map.getData());
+			
+			if(null == path[1]) {
+				player.moveAbsolute(path[0].j + 0.5f, path[0].i + 0.5f);
+				map.setCellVisited(path[0].j, path[0].i);
+				end = false;
+			} else {
+				player.moveAbsolute(path[1].j + 0.5f, path[1].i + 0.5f);
+				map.setCellVisited(path[1].j, path[1].i);
+			}
+			
+		}
+		if (clear) {
+			map.clearMap();
+			clear = false;
+		}
+		map.setCellVisited(player.getxCell(), player.getyCell());
 	}
+	
+	
 	
 	/**
 	 * @see java.awt.event.KeyListener#keyTyped(java.awt.event.KeyEvent)
@@ -223,6 +259,15 @@ public class Game extends Canvas implements KeyListener {
 		if (e.getKeyCode() == KeyEvent.VK_UP) {
 			up = true;
 		}
+		if (e.getKeyCode() == KeyEvent.VK_E) {
+			end = true;
+		}
+		if (e.getKeyCode() == KeyEvent.VK_B) {
+			begin = true;
+		}
+		if (e.getKeyCode() == KeyEvent.VK_C) {
+			clear = true;
+		}
 	}
 
 	/**
@@ -241,6 +286,12 @@ public class Game extends Canvas implements KeyListener {
 		}
 		if (e.getKeyCode() == KeyEvent.VK_UP) {
 			up = false;
+		}
+		if (e.getKeyCode() == KeyEvent.VK_E) {
+			//end = false;
+		}
+		if (e.getKeyCode() == KeyEvent.VK_B) {
+			begin = false;
 		}
 	}
 	

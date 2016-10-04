@@ -13,8 +13,10 @@ import java.awt.Image;
 public class Entity {
 	/** The x position of this entity in terms of grid cells */
 	private float x;
+	private int xCell;
 	/** The y position of this entity in terms of grid cells */
 	private float y;
+	private int yCell;
 	/** The image to draw for this entity */
 	private Image image;
 	/** The map which this entity is wandering around */
@@ -37,6 +39,8 @@ public class Entity {
 		this.map = map;
 		this.x = x;
 		this.y = y;
+		this.xCell = (int) Math.abs(x);
+		this.yCell = (int) Math.abs(y);
 	}
 	
 	/**
@@ -72,6 +76,53 @@ public class Entity {
 		return false;
 	}
 	
+	
+	/**
+	 * Move this entity to an absolute position. This may or may not succeed depending
+	 * on collisions
+	 * 
+	 * @param x The new position on the x axis
+	 * @param y The new position on the y axis
+	 * @return True if the move succeeded
+	 */
+	public boolean moveAbsolute(float x, float y) {
+		
+		// check if the new position of the entity collides with anything
+		if (validLocation(x, y)) {
+			
+			// calculate the angle we're facing based on our last move
+			ang = (float) (Math.atan2(y - this.y, x - this.x) - (Math.PI / 2));
+			
+			// and if it doesn't then change our position to the new position
+			this.x = x;
+			this.y = y;
+			this.xCell = (int) Math.abs(x);
+			this.yCell = (int) Math.abs(y);
+			return true;
+		}
+		
+		// if it wasn'n't do anything apart from 
+		// tell the caller
+
+		return false;
+	}
+	
+	
+	public float getX() {
+		return x;
+	}
+
+	public float getY() {
+		return y;
+	}
+	public int getxCell() {
+		return xCell;
+	}
+
+	public int getyCell() {
+		return yCell;
+	}
+
 	/**
 	 * Check if the entity would be at a valid location if its position
 	 * was as specified
@@ -100,9 +151,7 @@ public class Entity {
 		}
 		
 		// if all the points checked are unblocked then we're in an ok
-
 		// location
-
 		return true;
 	}
 	
@@ -129,3 +178,6 @@ public class Entity {
 		g.rotate(-ang, xp, yp);
 	}
 }
+
+
+

@@ -163,7 +163,6 @@ public class Game extends Canvas implements KeyListener {
 				try {
 					logic(5);
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			//}
@@ -174,7 +173,6 @@ public class Game extends Canvas implements KeyListener {
 				try {
 					logic(delta % 5);
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}*/
@@ -299,8 +297,9 @@ public class Game extends Canvas implements KeyListener {
 	 * The entry point to our example code
 	 * 
 	 * @param argv The arguments passed into the program
-	 */
+	 *
 	public static void main(String[] argv) {
 		new Game();
 	}
+	*/
 }
